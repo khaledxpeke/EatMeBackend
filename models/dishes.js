@@ -5,10 +5,6 @@ const DishSchema = new Mongoose.Schema({
     unique: true,
     required: true,
   },
-  description: {
-    type: [String],
-    required: true,
-  },
   price: {
     type: Number,
     required: true,
@@ -37,5 +33,5 @@ const DishSchema = new Mongoose.Schema({
 
 });
 
-const Dish = Mongoose.model("dish", DishSchema);
+const Dish = Mongoose.model("Dish", DishSchema);
 module.exports = Dish;

@@ -11,7 +11,7 @@ require("dotenv").config();
 const jwtSecret = process.env.JWT_SECRET;
 app.use(express.json());
 
-exports.createCart = async (req, res) => {
+(exports.createCart = async (req, res) => {
   try {
     let userId, guestId;
     if (req.user) {
@@ -25,166 +25,148 @@ exports.createCart = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-},
+}),
+  (exports.addDishtoCart = async (req, res) => {
+    try {
+      const { dishId, supplements, description,quantity} = req.body;
 
-exports.addDishtoCart = async (req, res) => {
-  try {
-    const { dishId, supplements } = req.body;
+      // Check if the user is authenticated
+      const userId = req.user ? req.user.id : null;
+      const guestId = req.guest ? req.cookies.guestId: null;
 
-    // Check if the user is authenticated
-    const userId = req.user ? req.user.id : null;
-    const guestId = req.guest ? req.guest.id : null;
+      // Get the dish
+      const dish = await Dish.findById(dishId);
 
-    // Get the dish
-    const dish = await Dish.findById(dishId);
+      // Create a new array for the selected supplements
+      const selectedSupplements = [];
 
-    // Create a new array for the selected supplements
-    const selectedSupplements = [];
-
-    // Loop through the supplement IDs and get the supplement objects
-    for (const supplementId of supplements) {
-      const supplement = await Supplement.findById(supplementId);
-      if (supplement) {
-        selectedSupplements.push({
-          supplement: supplement._id,
-          name: supplement.name,
-          price: supplement.price
-        });
+      // Loop through the supplement IDs and get the supplement objects
+      for (const supplementId of supplements) {
+        const supplement = await Supplement.findById(supplementId);
+        if (supplement) {
+          selectedSupplements.push({
+            supplement: supplement._id,
+            name: supplement.name,
+            price: supplement.price,
+          });
+        }
       }
-    }
 
-    // Calculate the total price of the dish with supplements
-    let totalPrice = dish.price;
-    for (const supplement of selectedSupplements) {
-      totalPrice += supplement.price;
-    }
+      // Calculate the total price of the dish with supplements
+      let totalPrice = dish.price;
+      for (const supplement of selectedSupplements) {
+        totalPrice += supplement.price;
+      }
 
-    // Create a new ordered dish with updated supplements
-    const orderedDish = new OrderedDish({
-      dish: {
-        id: dish._id,
-        name: dish.name,
-        description: dish.description,
-        price: dish.price,
+      // Create a new ordered dish with updated supplements
+      const orderedDish = new OrderedDish({
+        dish: dishId,
         supplements: selectedSupplements,
-      },
-      orderedBy: userId || guestId,
-    });
-
-    // Save the ordered dish to the database
-    await orderedDish.save();
-
-    // Create a new cart item
-    const cartItem = {
-      dish: orderedDish._id,
-      quantity: 1,
-    };
-
-    // Find the user's or guest's cart and add the new item to it
-    let cart;
-    if (userId) {
-      cart = await Cart.findOne({ user: userId });
-    } else {
-      cart = await Cart.findOne({ guest: guestId });
-    }
-
-    if (cart) {
-      // Check if the item is already in the cart
-      const existingItem = cart.items.find(
-        (item) => item.dish.toString() === orderedDish._id.toString()
-      );
-      if (existingItem) {
-        // If the item is already in the cart, increase the quantity
-        existingItem.quantity += 1;
-      } else {
-        // If the item is not in the cart, add it
-        cart.items.push(cartItem);
-      }
-
-      await cart.save();
-    } else {
-      // If the user/guest doesn't have a cart yet, create a new one and add the item to it
-      const newCart = new Cart({
-        items: [cartItem],
-        user: userId,
-        guest: guestId,
+        description: description || "",
+        quantity: quantity || 1,
+        orderedBy: userId || guestId,
       });
-      await newCart.save();
-    }
 
-    res.status(201).json({ message: 'Item added to cart' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
+      // Save the ordered dish to the database
+      await orderedDish.save();
 
+      // Create a new cart item
+      const cartItem = {
+        dish: orderedDish._id,
+        selectedSupplements: selectedSupplements,
+        quantity: quantity || 1,
+      };
 
-exports.getDishesFromCart = async (req, res) => {
-  try {
-    let cart;
-    if (req.user) {
-      // If the user is authenticated, find their cart by user ID
-      cart = await Cart.findOne({ userId: req.user.id, _id: req.params.cartId }).populate('dishes.dishId');
-    } else {
-      // If the user is not authenticated, find their cart by guest ID
-      const guestId = req.cookies.guestId;
-      if (!guestId) {
-        return res.status(404).json({ message: "Guest ID not found" });
+      // Find the user's or guest's cart and add the new item to it
+      let cart;
+      if (userId) {
+        cart = await Cart.findOne({ user: userId });
+      } else {
+        cart = await Cart.findOne({ guest: guestId });
       }
-      cart = await Cart.findOne({ guestId, _id: req.params.cartId }).populate('dishes.dishId');
-    }
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
-    const dishes = cart.dishes.map(d => d.dishId);
-    res.json(dishes);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-},
 
-exports.removeDishFromCart = async (req, res) => {
-  try {
-    let cart;
-    if (req.user) {
-      // If the user is authenticated, find their cart by user ID
-      cart = await Cart.findOne({ userId: req.user.id, _id: req.params.cartId });
-    } else {
-      // If the user is not authenticated, find their cart by guest ID
-      const guestId = req.cookies.guestId;
-      if (!guestId) {
-        return res.status(404).json({ message: "Guest ID not found" });
+      if (cart) {
+        // Check if the item is already in the cart
+        const existingItem = cart.items.find(
+          (item) => item.dish.toString() === orderedDish._id.toString()
+        );
+        if (existingItem) {
+          // If the item is already in the cart, increase the quantity
+          existingItem.quantity += 1;
+        } else {
+          // If the item is not in the cart, add it
+          cart.items.push(cartItem);
+        }
+
+        await cart.save();
+      } else {
+        // If the user/guest doesn't have a cart yet, create a new one and add the item to it
+        const newCart = new Cart({
+          items: [cartItem],
+          user: userId,
+          guest: guestId,
+        });
+        await newCart.save();
       }
-      cart = await Cart.findOne({ guestId, _id: req.params.cartId });
-    }
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
-    const dishIndex = cart.dishes.findIndex(d => d.dishId == req.params.dishId);
-    if (dishIndex === -1) {
-      return res.status(404).json({ message: "Dish not found in cart" });
-    }
-    cart.dishes.splice(dishIndex, 1);
-    await cart.save();
-    res.json(cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-},
 
-exports.clearCart = async (req, res) => {
-  try {
-    const { cartId } = req.params;
-    const cart = await Cart.findById(cartId);
-    if (!cart) {
-      res.status(404).json({ message: "Cart not found" });
-      return;
+      res.status(201).json({ message: "Item added to cart" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server Error" });
     }
-    cart.dishes = [];
-    const savedCart = await cart.save();
-    res.json(savedCart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+  });
+
+  exports.getOrderedDishesFromCart = async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const guestId = req.cookies.guestId;
+  
+      let cart;
+      if (userId) {
+        cart = await Cart.findOne({ user: userId }).populate('items.dish.dish').populate('items.selectedSupplements.supplement');
+      } else {
+        cart = await Cart.findOne({ guest: guestId }).populate('items.dish.dish').populate('items.selectedSupplements.supplement');
+      }
+  
+      if (!cart) {
+        return res.status(404).json({ error: 'Cart not found' });
+      }
+  
+      const orderedDishes = cart.items.map((item) => ({
+        dish: item.dish,
+        selectedSupplements: item.selectedSupplements,
+        quantity: item.quantity
+      }));
+  
+      res.json({ orderedDishes });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  };
+  exports.removeDishFromCart = async (req, res) => {
+    const { itemId } = req.params;
+    const userId = req.user.id;
+    const guestId = req.cookies.guestId
+  
+    try {
+      let cart = await Cart.findOne({ $or: [{ user: userId }, { guest: guestId }] });
+      if (!cart) {
+        return res.status(404).json({ message: "Cart not found" });
+      }
+
+      const item = cart.items.find((item) => item.id === itemId);
+      const dishId = item?.dish?.dish?._id;
+      
+      cart.items = cart.items.filter((item) => item.id !== itemId);
+      await cart.save();
+
+      await OrderedDish.deleteOne({ dish: dishId });
+  
+      return res.status(200).json(cart);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Server Error");
+    }
+  };
+ 

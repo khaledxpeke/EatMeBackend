@@ -20,7 +20,7 @@ connectDB();
 server = app.listen(3300, function () {
   console.log("Server is listening on port 3300");
 });
-
+app.use(cookieParser());
 app.use("/api/auth", require("./routes/authRoutes"))
 app.use("/api/dish", require("./routes/dishRoutes"))
 app.use("/api/feedbacks", require("./routes/feedbackRoutes"))
@@ -35,7 +35,6 @@ app.use(historyRoutes);
 app.use(favoriteRoutes);
 app.use(supplementRoutes);
 app.use(cartRoutes);
-app.use(cookieParser());
 app.use(cors({
   origin: "*",
   credentials: true
