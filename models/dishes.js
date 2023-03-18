@@ -5,6 +5,10 @@ const DishSchema = new Mongoose.Schema({
     unique: true,
     required: true,
   },
+  description: {
+    type: [String],
+    required: true,
+  },
   price: {
     type: Number,
     required: true,

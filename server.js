@@ -14,7 +14,10 @@ const cookieParser = require("cookie-parser");
 const { adminAuth, userAuth } = require("./Middleware/auth.js");
 app.use(express.json());
 const cors = require("cors")
-
+app.use(cors({
+  origin: "*",
+  credentials: true
+}))
 
 connectDB();
 server = app.listen(3300, function () {
@@ -35,10 +38,7 @@ app.use(historyRoutes);
 app.use(favoriteRoutes);
 app.use(supplementRoutes);
 app.use(cartRoutes);
-app.use(cors({
-  origin: "*",
-  credentials: true
-}))
+
 
 app.get("/admin", adminAuth, (req, res) => res.send("Admin Route"));
 app.get("/basic", userAuth, (req, res) => res.send("User Route"));
