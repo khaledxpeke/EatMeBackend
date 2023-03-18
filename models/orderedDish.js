@@ -1,31 +1,40 @@
-const Mongoose = require("mongoose");
-const OrderedDishSchema = new Mongoose.Schema({
+const mongoose = require("mongoose");
+const OrderedDishSchema = new mongoose.Schema({
     userId: {
-        type: Mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
       },
       guestId: {
         type: String ,
       },
-      dishes: [
-        {
-          dishId: {
-            type: Mongoose.Schema.Types.ObjectId,
-            ref: 'Dish',
-          },
-          quantity: {
-            type: Number,
-            default: 1
-          }
-        }
-      ],
-        supplements: {
-          type: Mongoose.Schema.Types.ObjectId,
+      dish: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Dish',
+        required: true
+      },
+      supplements: [{
+        supplement: {
+          type: mongoose.Schema.Types.ObjectId,
           ref: 'Supplement',
-          required: true,
+          required: true
         },
+        name: {
+          type: String,
+          required: true
+        },
+        price: {
+          type: Number,
+          required: true
+        }
+      }],
+      description: {
+        type: String,
+        required: true
+      }
+    }, {
+      timestamps: true
+    });
 
-});
 
-const OrderedDish = Mongoose.model("orderedDish", OrderedDishSchema);
+const OrderedDish = mongoose.model("orderedDish", OrderedDishSchema);
 module.exports = OrderedDish;

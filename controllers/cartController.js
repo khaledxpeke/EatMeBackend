@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const Cart = require("../models/cart");
 const Dish = require("../models/dishes");
+const Supplement = require("../models/supplement");
+const OrderedDish = require("../models/orderedDish");
 const express = require("express");
 const app = express();
 const bcrypt = require("bcryptjs");
@@ -27,34 +29,93 @@ exports.createCart = async (req, res) => {
 
 exports.addDishtoCart = async (req, res) => {
   try {
-    const { cartId, dishId, quantity } = req.body;
-    const cart = await Cart.findById(cartId);
-    if (!cart) {
-      res.status(404).json({ message: 'Cart not found' });
-      return;
+    const { dishId, supplements } = req.body;
+
+    // Check if the user is authenticated
+    const userId = req.user ? req.user.id : null;
+    const guestId = req.guest ? req.guest.id : null;
+
+    // Get the dish
+    const dish = await Dish.findById(dishId);
+
+    // Create a new array for the selected supplements
+    const selectedSupplements = [];
+
+    // Loop through the supplement IDs and get the supplement objects
+    for (const supplementId of supplements) {
+      const supplement = await Supplement.findById(supplementId);
+      if (supplement) {
+        selectedSupplements.push({
+          supplement: supplement._id,
+          name: supplement.name,
+          price: supplement.price
+        });
+      }
     }
-    // Check if the cart belongs to the logged-in user
-    if (cart.userId && !cart.userId.equals(req.user.id)) {
-      res.status(403).json({ message: 'Access denied' });
-      return;
+
+    // Calculate the total price of the dish with supplements
+    let totalPrice = dish.price;
+    for (const supplement of selectedSupplements) {
+      totalPrice += supplement.price;
     }
-    // Check if the cart belongs to the guest
-    if (cart.guestId && cart.guestId !== req.cookies.guestId) {
-      res.status(403).json({ message: 'Access denied' });
-      return;
-    }
-    const dishIndex = cart.dishes.findIndex(d => d.dishId.equals(dishId));
-    if (dishIndex >= 0) {
-      // If the dish is already in the cart, increment its quantity
-      cart.dishes[dishIndex].quantity += quantity;
+
+    // Create a new ordered dish with updated supplements
+    const orderedDish = new OrderedDish({
+      dish: {
+        id: dish._id,
+        name: dish.name,
+        description: dish.description,
+        price: dish.price,
+        supplements: selectedSupplements,
+      },
+      orderedBy: userId || guestId,
+    });
+
+    // Save the ordered dish to the database
+    await orderedDish.save();
+
+    // Create a new cart item
+    const cartItem = {
+      dish: orderedDish._id,
+      quantity: 1,
+    };
+
+    // Find the user's or guest's cart and add the new item to it
+    let cart;
+    if (userId) {
+      cart = await Cart.findOne({ user: userId });
     } else {
-      // Otherwise, add the dish to the cart with the specified quantity
-      cart.dishes.push({ dishId, quantity });
+      cart = await Cart.findOne({ guest: guestId });
     }
-    const savedCart = await cart.save();
-    res.json(savedCart);
+
+    if (cart) {
+      // Check if the item is already in the cart
+      const existingItem = cart.items.find(
+        (item) => item.dish.toString() === orderedDish._id.toString()
+      );
+      if (existingItem) {
+        // If the item is already in the cart, increase the quantity
+        existingItem.quantity += 1;
+      } else {
+        // If the item is not in the cart, add it
+        cart.items.push(cartItem);
+      }
+
+      await cart.save();
+    } else {
+      // If the user/guest doesn't have a cart yet, create a new one and add the item to it
+      const newCart = new Cart({
+        items: [cartItem],
+        user: userId,
+        guest: guestId,
+      });
+      await newCart.save();
+    }
+
+    res.status(201).json({ message: 'Item added to cart' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
