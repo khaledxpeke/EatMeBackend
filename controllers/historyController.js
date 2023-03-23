@@ -29,7 +29,6 @@ exports.add = async (req, res, next) => {
       phone,
     });
     res.status(201).json({
-      message: "History successfully created",
       histories: histories,
     });
   } catch (error) {
@@ -45,7 +44,6 @@ exports.get = async (req, res, next) => {
   try {
     const histories = await history.find({user_id:userId});
     res.status(200).json({
-      message: "All histories successfully retrieved",
       histories: histories,
     });
   } catch (error) {

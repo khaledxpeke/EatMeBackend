@@ -22,7 +22,6 @@ exports.add = async (req, res, next) => {
             supplements: [],
         });
         res.status(201).json({
-            message: "Dish successfully created",
             dish: dish._id,
         });
     } catch (error) {
@@ -38,7 +37,6 @@ exports.getDish = async (req, res, next) => {
     try {
         const dish = await Dish.findById(req.params.id);
         res.status(200).json({
-            message: "Dish successfully retrieved",
             dish,
         });
     } catch (error) {
@@ -53,7 +51,6 @@ exports.getAll = async (req, res, next) => {
     try {
         const dishes = await Dish.find({});
         res.status(200).json({
-            message: "Dishes successfully retrieved",
             dishes,
         });
     } catch (error) {
