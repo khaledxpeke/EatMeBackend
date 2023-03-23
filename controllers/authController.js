@@ -46,7 +46,6 @@ exports.register = async (req, res, next) => {
             maxAge: maxAge * 1000, // 3hrs in ms
           });
           res.status(201).json({
-            message: "User successfully created",
             user: user._id,
             token:token,
           });
@@ -96,7 +95,6 @@ exports.login = async (req, res, next) => {
             maxAge: maxAge * 1000, // 3hrs in ms
           });
           res.status(201).json({
-            message: "User successfully Logged in",
             user: user._id,
             token: token,
           });
@@ -135,7 +133,7 @@ exports.update = async (req, res, next) => {
               .json({ message: "An error occurred", error: err.message });
             process.exit(1);
           }
-          res.status("201").json({ message: "Update successful", user });
+          res.status("201").json( user );
         });
     })
     .catch((error) => {
