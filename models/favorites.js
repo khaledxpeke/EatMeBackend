@@ -2,7 +2,7 @@ const Mongoose = require("mongoose");
 const FavoriteSchema = new Mongoose.Schema({
     dish: {
         type: Mongoose.Schema.Types.ObjectId,
-        ref: 'dish',
+        ref: 'Dish',
         required: true
       },
       user: {

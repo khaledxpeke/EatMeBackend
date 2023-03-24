@@ -49,7 +49,7 @@ exports.getDish = async (req, res, next) => {
 
 exports.getAll = async (req, res, next) => {
     try {
-        const dishes = await Dish.find({});
+        const dishes = await Dish.find({}).populate("supplements");
         res.status(200).json({
             dishes,
         });

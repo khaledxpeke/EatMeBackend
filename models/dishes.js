@@ -33,7 +33,7 @@ const DishSchema = new Mongoose.Schema({
     default: 5,
     required: true,
   },
-  supplements: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'supplement' }]
+  supplements: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Supplement' }]
 
 });
 
