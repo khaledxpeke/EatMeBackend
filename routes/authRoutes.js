@@ -1,11 +1,12 @@
 const router = require('express').Router();
-const { register,login, getUsers,logout, updatePassword,findEmail,resetPassword,updateProfile } = require("../controllers/authController");
+const { register,login, getUsers,logout, updatePassword,findEmail,resetPassword,updateProfile,getUserbyId } = require("../controllers/authController");
 const { adminAuth,userAuth } = require("../Middleware/auth")
 
 
 router.route("/register").post(register)
 router.route("/login").post(login);
 router.route("/users").get(getUsers);
+router.route("/user").get(userAuth,getUserbyId);
 router.route("/logout").post(logout);
 router.route("/updatePass").post(userAuth,updatePassword);
 router.route("/findemail").get(findEmail);

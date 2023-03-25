@@ -95,7 +95,7 @@ exports.login = async (req, res, next) => {
             maxAge: maxAge * 1000, // 3hrs in ms
           });
           res.status(201).json({
-            user: user._id,
+            user: user,
             token: token,
           });
         } else {
@@ -167,6 +167,17 @@ exports.getUsers = async (req, res, next) => {
       res.status(401).json({ message: "Not successful", error: err.message })
     );
 };
+
+exports.getUserbyId = async (req, res, next) => {
+  const userId = req.user.id;
+  if (!userId) {
+    res.status(400).json({ message: " Id not present" });}
+    else {
+      const user= await User.findById(userId);
+      res.status(200).json({ user: user }); 
+    }
+
+  }
 
 exports.logout = async (req, res, next) => {
   res.cookie("jwt", "", { maxAge: 1 });
@@ -255,7 +266,7 @@ try{
 }
 
 exports.updateProfile = async (req, res) => {
-  const { username, gender, phone, address, date, country, region, postal, image } = req.body;
+  const { username, gender, phone, address, date, country, region, postal } = req.body;
   const userId = req.user.id;
 
   try {
@@ -272,7 +283,6 @@ exports.updateProfile = async (req, res) => {
     user.country = country || user.country;
     user.region = region || user.region;
     user.postal = postal || user.postal;
-    user.image = image || user.image;
 
     await user.save();
 
