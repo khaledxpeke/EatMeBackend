@@ -316,3 +316,25 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 }
+
+exports.updateUserImage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { image } = req.body
+
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { image: image } },
+      { new: true }
+    )
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json("image successfully updated")
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).json({ error: 'Server error' })
+  }
+}

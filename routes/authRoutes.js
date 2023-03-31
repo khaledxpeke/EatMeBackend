@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { register,login, getUsers,logout, updatePassword,findEmail,resetPassword,updateProfile,getUserbyId } = require("../controllers/authController");
+const { register,login, getUsers,logout, updatePassword,findEmail,resetPassword,updateProfile,getUserbyId,updateUserImage } = require("../controllers/authController");
 const { adminAuth,userAuth } = require("../Middleware/auth")
 
 
@@ -12,6 +12,7 @@ router.route("/updatePass").post(userAuth,updatePassword);
 router.route("/findemail").get(findEmail);
 router.route("/resetPass").post(resetPassword);
 router.route("/update").post(userAuth,updateProfile);
+router.route("/updateImage").post(userAuth,updateUserImage);
 //router.route("/update").put(adminAuth, update)
 //router.route("/deleteUser").delete(adminAuth, deleteUser)
 
