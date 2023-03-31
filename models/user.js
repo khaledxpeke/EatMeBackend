@@ -35,6 +35,9 @@ const UserSchema = new Mongoose.Schema({
   region: {
     type: String,
   },
+  state: {
+    type: String,
+  },
   postal: {
     type: String,
     minlength: 3,

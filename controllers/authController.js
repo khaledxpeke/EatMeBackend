@@ -6,15 +6,21 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const jwtSecret = process.env.JWT_SECRET;
 app.use(express.json());
+const phone = require('phone');
+const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.register = async (req, res, next) => {
-  const { email,username, password,gender,phone,address,date,country,region ,postal,image} = req.body;
+  const { email,username, password,gender,phone: rawPhone,address,date,country,region ,state,postal,image} = req.body;
   const user = await User.findOne({ email });
   if (password.length < 6) {
     return res.status(400).json({ message: "Password less than 6 characters" });
   }
   if (user) {
     return res.status(400).json({ message: "User already exists" });
+  }
+  const { country: phoneCountryCode, phoneNumber: formattedPhone } = phone(rawPhone);
+  if (!formattedPhone) {
+    return res.status(400).json({ message: "Invalid phone number" });
   }
   try {
     bcrypt.hash(password, 10).then(async (hash) => {
@@ -23,11 +29,12 @@ exports.register = async (req, res, next) => {
         username,
         password: hash,
         gender,
-        phone,
+        phone: formattedPhone,
         address,
         date,
         country,
         region,
+        state,
         postal,
         image, 
 
@@ -154,8 +161,9 @@ exports.getUsers = async (req, res, next) => {
         container.phone = user.phone;
         container.address = user.address;
         container.date = user.date;
-        container.Country = user.Country;
+        container.country = user.country;
         container.region = user.region;
+        container.state = user.state;
         container.postal = user.postal;
         container.image = user.image;
 
@@ -266,7 +274,7 @@ try{
 }
 
 exports.updateProfile = async (req, res) => {
-  const { username, gender, phone, address, date, country, region, postal } = req.body;
+  const { username, gender, phone, address, date, country, region, state, postal } = req.body;
   const userId = req.user.id;
 
   try {
@@ -277,11 +285,27 @@ exports.updateProfile = async (req, res) => {
 
     user.username = username || user.username;
     user.gender = gender || user.gender;
-    user.phone = phone || user.phone;
+    if (phone) {
+      try {
+        const phoneNumber = phoneUtil.parseAndKeepRawInput(phone);
+        if (!phoneUtil.isValidNumber(phoneNumber)) {
+          return res.status(400).json({ error: 'Invalid phone number' });
+        }
+        user.phone = phoneUtil.format(phoneNumber, 1); // format as international
+        user.phoneCountryCode = phoneNumber.getCountryCode().toString(); // save the country code
+      } catch (err) {
+        console.error(err);
+        return res.status(400).json({ error: 'Invalid phone number' });
+      }
+    } else {
+      user.phone = undefined;
+      user.phoneCountryCode = undefined;
+    }
     user.address = address || user.address;
     user.date = date || user.date;
     user.country = country || user.country;
     user.region = region || user.region;
+    user.state = state || user.state;
     user.postal = postal || user.postal;
 
     await user.save();
