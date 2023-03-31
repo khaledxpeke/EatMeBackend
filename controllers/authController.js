@@ -76,7 +76,7 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({
-      message: "email or Password not present",
+      message: "The email or password is incorrect!",
     });
   }
   try {
@@ -106,7 +106,7 @@ exports.login = async (req, res, next) => {
             token: token,
           });
         } else {
-          res.status(400).json({ message: "Login not succesful" });
+          res.status(400).json({ message: "The email or password is incorrect!" });
         }
       });
     }
