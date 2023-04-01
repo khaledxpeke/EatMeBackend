@@ -61,7 +61,7 @@ exports.register = async (req, res, next) => {
         })
         .catch((error) =>
           res.status(400).json({
-            message: "some error occurred",
+            message: "an error occured",
             error: error.message,
           })
         );
