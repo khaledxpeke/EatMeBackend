@@ -14,9 +14,6 @@ const path = require('path');
 exports.register = async (req, res, next) => {
   const { email,username, password,gender,phone: rawPhone,address,date,country,region ,state,postal,image} = req.body;
   const user = await User.findOne({ email });
-  if (password.length < 6) {
-    return res.status(400).json({ message: "Password less than 6 characters" });
-  }
   if (user) {
     return res.status(400).json({ message: "User already exists" });
   }
@@ -61,7 +58,7 @@ exports.register = async (req, res, next) => {
         })
         .catch((error) =>
           res.status(400).json({
-            message: "an error occured",
+            message: "username already exists",
             error: error.message,
           })
         );
