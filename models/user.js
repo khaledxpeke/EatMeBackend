@@ -7,7 +7,6 @@ const UserSchema = new Mongoose.Schema({
   },
   username: {
     type: String,
-    unique: true,
     required: true,
   },
   password: {
@@ -28,6 +27,7 @@ const UserSchema = new Mongoose.Schema({
   },
   date: {
     type: Date,
+    required: true,
   },
   country: {
     type: String,
