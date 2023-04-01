@@ -18,10 +18,10 @@ exports.register = async (req, res, next) => {
   if (user) {
     return res.status(400).json({ message: "User already exists" });
   }
-  const { country: phoneCountryCode, phoneNumber: formattedPhone } = phone(rawPhone);
-  if (!formattedPhone) {
-    return res.status(400).json({ message: "Invalid phone number" });
-  }
+  // const { country: phoneCountryCode, phoneNumber: formattedPhone } = phone(rawPhone);
+  // if (!formattedPhone) {
+  //   return res.status(400).json({ message: "Invalid phone number" });
+  // }
   try {
     bcrypt.hash(password, 10).then(async (hash) => {
       await User.create({
@@ -29,7 +29,7 @@ exports.register = async (req, res, next) => {
         username,
         password: hash,
         gender,
-        phone: formattedPhone,
+        // phone: formattedPhone,
         address,
         date,
         country,
