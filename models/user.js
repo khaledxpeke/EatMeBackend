@@ -28,6 +28,7 @@ const UserSchema = new Mongoose.Schema({
   },
   date: {
     type: Date,
+    required: true,
   },
   country: {
     type: String,

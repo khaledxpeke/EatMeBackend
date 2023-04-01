@@ -8,6 +8,8 @@ const jwtSecret = process.env.JWT_SECRET;
 app.use(express.json());
 const phone = require('phone');
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+const multer = require('multer');
+const path = require('path');
 
 exports.register = async (req, res, next) => {
   const { email,username, password,gender,phone: rawPhone,address,date,country,region ,state,postal,image} = req.body;
@@ -31,7 +33,7 @@ exports.register = async (req, res, next) => {
         gender,
         // phone: formattedPhone,
         address,
-        date,
+        date:new Date(),
         country,
         region,
         state,
@@ -317,24 +319,86 @@ exports.updateProfile = async (req, res) => {
   }
 }
 
+// exports.updateUserImage = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { image } = req.body
+
+//     const user = await User.findOneAndUpdate(
+//       { _id: userId },
+//       { $set: { image: image } },
+//       { new: true }
+//     )
+
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' })
+//     }
+
+//     res.json("image successfully updated")
+//   } catch (err) {
+//     console.error(err.message)
+//     res.status(500).json({ error: 'Server error' })
+//   }
+// }
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, './uploads/images'); // Store images in ./uploads/images directory
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const name = file.originalname.replace(ext, '').toLowerCase().split(' ').join('-');
+    cb(null, name + '-' + Date.now() + ext); // Generate unique filename for each uploaded image
+  }
+});
+
+// Set up multer middleware for handling file uploads
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB file size limit
+  },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb('Error: Only JPEG, JPG, and PNG images allowed');
+    }
+  }
+}).single('image');
+
+// API endpoint for updating user image
 exports.updateUserImage = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { image } = req.body
 
-    const user = await User.findOneAndUpdate(
-      { _id: userId },
-      { $set: { image: image } },
-      { new: true }
-    )
+    upload(req, res, async (err) => {
+      if (err) {
+        console.error(err.message);
+        return res.status(400).json({ error: err.message });
+      }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
-    }
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
 
-    res.json("image successfully updated")
+      const user = await User.findOneAndUpdate(
+        { _id: userId },
+        { $set: { image: req.file.path } },
+        { new: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json("Image successfully updated");
+    });
   } catch (err) {
-    console.error(err.message)
-    res.status(500).json({ error: 'Server error' })
+    console.error(err.message);
+    res.status(500).json({ error: 'Server error' });
   }
-}
+};
