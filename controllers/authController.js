@@ -58,7 +58,7 @@ exports.register = async (req, res, next) => {
         })
         .catch((error) =>
           res.status(400).json({
-            message: "username already exists",
+            message: "This name already exists",
             error: error.message,
           })
         );
