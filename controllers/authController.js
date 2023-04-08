@@ -160,7 +160,7 @@ exports.logout = async (req, res, next) => {
 };
 
 exports.updatePassword = async (req, res) => {
-  const { oldPassword, newPassword, confirmPassword } = req.body;
+  const { oldPassword, newPassword } = req.body;
   const userId = req.user.id;
 
   try {
@@ -170,8 +170,8 @@ exports.updatePassword = async (req, res) => {
     if (!match) {
       return res.status(401).json({message:"Incorrect password"});
     }
-
-    if (newPassword == user.password) {
+    const passmatch = await bcrypt.compare(newPassword, user.password);
+    if (passmatch) {
       return res
         .status(400)
         .json({message:"the new password is the same as the old password"});
@@ -204,14 +204,6 @@ exports.findEmail = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   const { userId, newPassword, confirmPassword } = req.body;
 try{
-
-  if (!newPassword || newPassword.trim().length < 8) {
-    return res.status(400).json({message:'New password must be at least 8 characters long'});
-  }
-
-  if (newPassword !== confirmPassword) {
-    return res.status(400).json({message:'New password and confirmation password do not match'});
-  }
 
   const user = await User.findById(userId);
   if (!user) {
