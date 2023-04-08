@@ -82,7 +82,7 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email });
     if (!user) {
       res.status(401).json({
-        message: "Login not successful",
+        message: "User not found",
         error: "User not found",
       });
     } else {
@@ -117,38 +117,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.update = async (req, res, next) => {
-  const { id } = req.body;
-
-  if (id) {
-
-
-    await User.findById(id);
-  } else {
-    res.status(400).json({ message: " Id not present" });
-  }
-  await User.findById(id)
-    .then((user) => {
-      // Third - Verifies the user is not an admin
-      
-        user.save((err) => {
-          //Monogodb error checker
-          if (err) {
-            res
-              .status("400")
-              .json({ message: "An error occurred", error: err.message });
-            process.exit(1);
-          }
-          res.status("201").json( user );
-        });
-    })
-    .catch((error) => {
-      res
-        .status(400)
-        .json({ message: "An error occurred", error: error.message });
-    });
-};
-
 exports.getUsers = async (req, res, next) => {
   await User.find({})
     .then((users) => {
@@ -171,7 +139,7 @@ exports.getUsers = async (req, res, next) => {
       res.status(200).json({ user: userFunction });
     })
     .catch((err) =>
-      res.status(401).json({ message: "Not successful", error: err.message })
+      res.status(401).json({ message: "No users found", error: err.message })
     );
 };
 
@@ -203,10 +171,10 @@ exports.updatePassword = async (req, res) => {
       return res.status(401).json({message:"Incorrect password"});
     }
 
-    if (newPassword !== confirmPassword) {
+    if (newPassword == user.password) {
       return res
         .status(400)
-        .json({message:"New password and confirmation password do not match"});
+        .json({message:"the new password is the same as the old password"});
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
