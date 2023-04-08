@@ -1,36 +1,40 @@
 const Mongoose = require("mongoose");
 const ReservationSchema = new Mongoose.Schema({
-  PersonNumber: {
+  people: {
     type: Number,
     required: true,
   },
-  FullName: {
-    type: Number,
-    required: true,
-  },
-  Address: {
+  fullName: {
     type: String,
     required: true,
   },
-  Phone: {
+  email: {
     type: String,
     required: true,
   },
-  Occasion: {
+  address: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  occasion: {
     type: String,
   },
-  SpecialRequest: {
+  specialRequest: {
     type: String,
   },
   date: {
     type: Date,
     required: true,
   },
-  Time: {
+  time: {
     type: String,
     required: true,
   },
-  Reminder: {
+  reminder: {
     type: Boolean,
   },
 });

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { add,getFeedback,update,getAll,deleteFeedback } = require("../controllers/feedBackController");
+const { add,getFeedback,update,getAll,deleteFeedback } = require("../controllers/feedbackController");
 const { adminAuth,userAuth } = require("../Middleware/auth")
 
 router.route("/add").post(userAuth,add);
