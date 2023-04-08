@@ -13,12 +13,12 @@ async function sendReminderEmail(reservation) {
       secure: false,
       auth: {
         user: 'khaledbouajila5481@gmail.com',
-        pass: '22693412khbu@'
+        pass: '*********'
       }
     });
   
     const mailOptions = {
-      from: 'Your Name <your_email@example.com>',
+      from: 'khaledbouajila5481@gmail.com',
       to: reservation.email,
       subject: "Don't forget your reservation tomorrow!",
       text: `Hi ${reservation.fullName}, This is a reminder that you have a reservation tomorrow at ${reservation.time}.`
