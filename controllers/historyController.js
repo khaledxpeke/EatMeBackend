@@ -33,7 +33,7 @@ exports.add = async (req, res, next) => {
     });
   } catch (error) {
     res.status(400).json({
-      message: "History not successful created",
+      message: "some error occured",
       error: error.message,
     });
   }
@@ -48,7 +48,7 @@ exports.get = async (req, res, next) => {
     });
   } catch (error) {
     res.status(400).json({
-      message: "All histories not successful retrieved",
+      message: "some error occured",
       error: error.message,
     });
   }

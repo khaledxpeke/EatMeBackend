@@ -60,12 +60,12 @@ exports.addOrderedDish = async (req, res) => {
       }
       // Check if the ordered dish belongs to the logged-in user
       if (orderedDish.userId && !orderedDish.userId.equals(req.user.id)) {
-        res.status(403).json({ message: 'Access denied' });
+        res.status(403).json({ message: 'Access denied no user found' });
         return;
       }
       // Check if the ordered dish belongs to the guest
       if (orderedDish.guestId && orderedDish.guestId !== req.cookies.guestId) {
-        res.status(403).json({ message: 'Access denied' });
+        res.status(403).json({ message: 'Access denied no guestId found' });
         return;
       }
       if (!orderedDish.dish) {
@@ -82,7 +82,7 @@ exports.addOrderedDish = async (req, res) => {
         const supplement = supplements[i];
         const foundSupplement = dish.supplements.find(s => s._id.equals(supplement.supplement));
         if (!foundSupplement) {
-          res.status(500).json({ message: 'Supplement not found' });
+          res.status(500).json({ message: 'Supplements not found' });
           return;
         }
         newSupplements.push({ supplement: foundSupplement._id, quantity: supplement.quantity });
@@ -105,12 +105,12 @@ exports.addOrderedDish = async (req, res) => {
       }
       // Check if the ordered dish belongs to the logged-in user
       if (orderedDish.userId && !orderedDish.userId.equals(req.user.id)) {
-        res.status(403).json({ message: 'Access denied' });
+        res.status(403).json({ message: 'Access denied no user found' });
         return;
       }
       // Check if the ordered dish belongs to the guest
       if (orderedDish.guestId && orderedDish.guestId !== req.cookies.guestId) {
-        res.status(403).json({ message: 'Access denied' });
+        res.status(403).json({ message: 'Access denied no guestId found' });
         return;
       }
       await orderedDish.remove();

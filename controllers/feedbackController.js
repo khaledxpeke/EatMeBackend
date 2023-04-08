@@ -12,16 +12,6 @@ app.use(express.json());
 exports.add = async (req, res, next) => {
   const { description } = req.body;
   try {
-    if (!description) {
-      return res.status(400).json({
-        message: "Description is required",
-      });
-    }
-    if (description.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Description less than 6 characters" });
-    }
     const feedbacks = await Feedback.create({
       description,
     });
@@ -30,7 +20,7 @@ exports.add = async (req, res, next) => {
     });
   } catch (error) {
     res.status(400).json({
-      message: "Feedback not successful created",
+      message: "Some error occured",
       error: error.message,
     });
   }

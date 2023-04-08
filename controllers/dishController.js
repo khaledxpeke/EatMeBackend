@@ -26,7 +26,7 @@ exports.add = async (req, res, next) => {
         });
     } catch (error) {
         res.status(400).json({
-            message: "Dish not successful created",
+            message: "Some error occured",
             error: error.message,
         });
     }
