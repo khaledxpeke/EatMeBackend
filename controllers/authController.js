@@ -200,13 +200,13 @@ exports.updatePassword = async (req, res) => {
 
     const match = await bcrypt.compare(oldPassword, user.password);
     if (!match) {
-      return res.status(401).send("Incorrect password");
+      return res.status(401).json({message:"Incorrect password"});
     }
 
     if (newPassword !== confirmPassword) {
       return res
         .status(400)
-        .send("New password and confirmation password do not match");
+        .json({message:"New password and confirmation password do not match"});
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -214,10 +214,10 @@ exports.updatePassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    res.status(200).send("Password updated successfully");
+    res.status(200).json({message:"Password updated successfully"});
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).json({message:"Internal Server Error"});
   }
 };
 
@@ -227,10 +227,10 @@ exports.findEmail = async (req, res) => {
   // Look up the user by email
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(400).send('User not found');
+    return res.status(400).json({message:'User not found'});
   }
 
-  res.send({ userId: user._id });
+  res.json({ userId: user._id });
 }
 
 exports.resetPassword = async (req, res) => {
@@ -238,22 +238,22 @@ exports.resetPassword = async (req, res) => {
 try{
 
   if (!newPassword || newPassword.trim().length < 8) {
-    return res.status(400).send('New password must be at least 8 characters long');
+    return res.status(400).json({message:'New password must be at least 8 characters long'});
   }
 
   if (newPassword !== confirmPassword) {
-    return res.status(400).send('New password and confirmation password do not match');
+    return res.status(400).json({message:'New password and confirmation password do not match'});
   }
 
   const user = await User.findById(userId);
   if (!user) {
-    return res.status(400).send('User not found');
+    return res.status(400).json({message:'User not found'});
   }
 
 
   const passwordMatch = await bcrypt.compare(newPassword, user.password);
   if (passwordMatch) {
-    return res.status(400).send('New password cannot be the same as the current password');
+    return res.status(400).json({message:'New password cannot be the same as the current password'});
   }
 
 
@@ -266,7 +266,7 @@ try{
 
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-  res.send({ token });}
+  res.json({ token });}
   catch(err){
     console.log(err)
   }
@@ -316,86 +316,86 @@ exports.updateProfile = async (req, res) => {
   }
 }
 
-// exports.updateUserImage = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const { image } = req.body
-
-//     const user = await User.findOneAndUpdate(
-//       { _id: userId },
-//       { $set: { image: image } },
-//       { new: true }
-//     )
-
-//     if (!user) {
-//       return res.status(404).json({ error: 'User not found' })
-//     }
-
-//     res.json("image successfully updated")
-//   } catch (err) {
-//     console.error(err.message)
-//     res.status(500).json({ error: 'Server error' })
-//   }
-// }
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/images'); // Store images in ./uploads/images directory
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const name = file.originalname.replace(ext, '').toLowerCase().split(' ').join('-');
-    cb(null, name + '-' + Date.now() + ext); // Generate unique filename for each uploaded image
-  }
-});
-
-// Set up multer middleware for handling file uploads
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 5 // 5MB file size limit
-  },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb('Error: Only JPEG, JPG, and PNG images allowed');
-    }
-  }
-}).single('image');
-
-// API endpoint for updating user image
 exports.updateUserImage = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { image } = req.body
 
-    upload(req, res, async (err) => {
-      if (err) {
-        console.error(err.message);
-        return res.status(400).json({ error: err.message });
-      }
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: { image: image } },
+      { new: true }
+    )
 
-      if (!req.file) {
-        return res.status(400).json({ error: 'No image file provided' });
-      }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
 
-      const user = await User.findOneAndUpdate(
-        { _id: userId },
-        { $set: { image: req.file.path } },
-        { new: true }
-      );
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      res.json("Image successfully updated");
-    });
+    res.json("image successfully updated")
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error(err.message)
+    res.status(500).json({ error: 'Server error' })
   }
-};
+}
+
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, './uploads/images'); // Store images in ./uploads/images directory
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = path.extname(file.originalname);
+//     const name = file.originalname.replace(ext, '').toLowerCase().split(' ').join('-');
+//     cb(null, name + '-' + Date.now() + ext); // Generate unique filename for each uploaded image
+//   }
+// });
+
+// // Set up multer middleware for handling file uploads
+// const upload = multer({
+//   storage: storage,
+//   limits: {
+//     fileSize: 1024 * 1024 * 5 // 5MB file size limit
+//   },
+//   fileFilter: (req, file, cb) => {
+//     const filetypes = /jpeg|jpg|png/;
+//     const mimetype = filetypes.test(file.mimetype);
+//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+//     if (mimetype && extname) {
+//       return cb(null, true);
+//     } else {
+//       cb('Error: Only JPEG, JPG, and PNG images allowed');
+//     }
+//   }
+// }).single('image');
+
+// // API endpoint for updating user image
+// exports.updateUserImage = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+
+//     upload(req, res, async (err) => {
+//       if (err) {
+//         console.error(err.message);
+//         return res.status(400).json({ error: err.message });
+//       }
+
+//       if (!req.file) {
+//         return res.status(400).json({ error: 'No image file provided' });
+//       }
+
+//       const user = await User.findOneAndUpdate(
+//         { _id: userId },
+//         { $set: { image: req.file.path } },
+//         { new: true }
+//       );
+
+//       if (!user) {
+//         return res.status(404).json({ error: 'User not found' });
+//       }
+
+//       res.json("Image successfully updated");
+//     });
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// };

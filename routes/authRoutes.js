@@ -12,7 +12,7 @@ router.route("/updatePass").post(userAuth,updatePassword);
 router.route("/findemail").get(findEmail);
 router.route("/resetPass").post(resetPassword);
 router.route("/update").post(userAuth,updateProfile);
-router.route("/updateImage").post(userAuth,updateUserImage);
+router.route("/profileimage").post(userAuth,updateUserImage);
 //router.route("/update").put(adminAuth, update)
 //router.route("/deleteUser").delete(adminAuth, deleteUser)
 
