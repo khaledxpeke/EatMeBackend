@@ -9,9 +9,10 @@ const jwtSecret = process.env.JWT_SECRET;
 app.use(express.json());
 const cron = require('node-cron');
 const transporter = require('../Middleware/email');
+const moment = require('moment');
 
 exports.addReservation = async (req, res, next) => {
-  const { people, fullName, email,address, phone, date, time } = req.body;
+  const { people, fullName, email,address, phone, date, time,reminder } = req.body;
   try {
     const reservation = await Reservation.create({
       people,
@@ -21,6 +22,7 @@ exports.addReservation = async (req, res, next) => {
       phone,
       date,
       time,
+      reminder,
     });
     res.status(201).json({
       reservation: reservation,
@@ -61,14 +63,28 @@ exports.getReservation = async (req, res, next) => {
     }
     }
 
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('54 0 * * *', async () => {
         // Get all reservations that are 1 day away from the current date
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const reservations = await Reservation.find({ date: tomorrow });
-      
+        const tomorrow = moment().add(1, 'day').startOf('day').utcOffset(+2);
+        const reservations = await Reservation.find({
+          reminder: true,
+          date: tomorrow.toISOString().slice(0, 10)
+          },
+         
+        );
+        console.log(reservations);
+        const currentTime = new Date();
+        const filteredReservations = reservations.filter(reservation => {
+            const reservationTime = moment.tz(`${reservation.date}T${reservation.time}:00`, 'YYYY-MM-DDTHH:mm:ss', 'YOUR_TIMEZONE_HERE').toDate();
+            const currentTime = moment.tz(new Date(), 'YOUR_TIMEZONE_HERE').toDate();
+            return reservationTime > currentTime;
+          });
+        console.log('Found reservations:', filteredReservations );
         // Send reminders for each reservation
-        for (const reservation of reservations) {
+        for (const reservation of filteredReservations) {
+            const reservationTime = new Date(`${reservation.date}T${reservation.time}:00`);
+            console.log(`Current time: ${currentTime}`);
+            console.log(`Reservation time: ${reservationTime}`);
           if (reservation.reminder !== false) {
             try {
                 // Send email to the user's email address
@@ -80,7 +96,7 @@ cron.schedule('0 0 * * *', async () => {
                 });
               } catch (err) {
                 console.error(err);
-              }
-          }
+              
+          }}
         }
       });

@@ -13,7 +13,7 @@ async function sendReminderEmail(reservation) {
       secure: false,
       auth: {
         user: 'khaledbouajila5481@gmail.com',
-        pass: '*********'
+        pass: 'xlwjzvtathzeqpwj'
       }
     });
   
@@ -28,3 +28,24 @@ async function sendReminderEmail(reservation) {
   
     console.log(`Reminder email sent to ${reservation.email}: ${result.response}`);
   }
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  async function remindReservations() {
+    const reservations = await Reservation.find({
+      reminder: true,
+      date: tomorrow.toISOString().slice(0, 10),
+      time: { $gt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    });
+  
+    console.log(`Found ${reservations.length} reservations to remind.`);
+  
+    for (const reservation of reservations) {
+      await sendReminderEmail(reservation);
+    }
+  
+    mongoose.connection.close();
+  }
+  
+  remindReservations();
