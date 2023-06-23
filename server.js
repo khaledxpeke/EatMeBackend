@@ -1,15 +1,5 @@
 const express = require("express");
 const app = express();
-const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
-const authRoutes= require("./routes/authRoutes");
-const dishRoutes= require("./routes/dishRoutes");
-const feedBackRoutes= require("./routes/feedbackRoutes");
-const historyRoutes= require("./routes/historyRoutes");
-const favoriteRoutes= require("./routes/favoriteRoutes");
-const supplementRoutes= require("./routes/supplementRoutes");
-const cartRoutes= require("./routes/cartRoutes");
-const reservationRoutes= require("./routes/reservationRoutes");
 const connectDB = require("./db/db");
 const cookieParser = require("cookie-parser");
 const { adminAuth, userAuth } = require("./Middleware/auth.js");
@@ -33,14 +23,7 @@ app.use("/api/favorite", require("./routes/favoriteRoutes"))
 app.use("/api/supplement", require("./routes/supplementRoutes"))
 app.use("/api/cart", require("./routes/cartRoutes"))
 app.use("/api/reservation", require("./routes/reservationRoutes"))
-app.use(authRoutes);
-app.use(dishRoutes);
-app.use(feedBackRoutes);
-app.use(historyRoutes);
-app.use(favoriteRoutes);
-app.use(supplementRoutes);
-app.use(cartRoutes);
-app.use(reservationRoutes);
+
 
 
 app.get("/admin", adminAuth, (req, res) => res.send("Admin Route"));
